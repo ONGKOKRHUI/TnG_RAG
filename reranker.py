@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from scipy.spatial.distance import euclidean
-from scipy.special import expit  # Sigmoid function
+from scipy.special import expit  # sigmoid function
 from langchain_core.documents import Document
 
 class CustomReranker:
@@ -10,30 +10,30 @@ class CustomReranker:
 
     def compute_normalized_distances(self, question, relevant_chunks):
         """
-        Replicates your notebook's logic: TF-IDF -> Euclidean -> Sigmoid.
+        TF-IDF -> Euclidean -> Sigmoid.
         """
         if not relevant_chunks:
             return []
 
-        # Combine question and chunks into a single list for vectorization
+        # combine question and chunks into a single string
         chunk_texts = [chunk.page_content for chunk in relevant_chunks]
         all_texts = [question] + chunk_texts
 
-        # Convert texts to TF-IDF vectors
+        #convert texts to TF-IDF vectors
         vectorizer = TfidfVectorizer()
         try:
             tfidf_matrix = vectorizer.fit_transform(all_texts).toarray()
         except ValueError:
-            # Handle cases where vocabulary is empty or texts are empty
+            # handle cases where vocabulary is empty or texts are empty
             return [{"chunk": c, "distance": 1.0} for c in chunk_texts]
 
-        # Compute distances
+        # calculate distances
         question_vector = tfidf_matrix[0]
         chunk_vectors = tfidf_matrix[1:]
 
         distances = [euclidean(question_vector, cv) for cv in chunk_vectors]
 
-        # Normalize distances using sigmoid
+        # normalize distances using sigmoid
         normalized_distances = expit(distances)
 
         return normalized_distances
@@ -48,17 +48,17 @@ class CustomReranker:
 
     def rerank(self, question, follow_up_questions, retrieved_docs, alpha=0.5, beta=0.1, gamma=0.01):
         """
-        Re-scores documents based on the notebook formula:
+        Re-scores documents based on the formula:
         Score = alpha * init_sim + beta * follow_up_sim - gamma * dist
         """
         if not retrieved_docs:
             return []
 
-        # 1. Calculate TF-IDF Distances
+        # calculate TF-IDF Distances
         distances = self.compute_normalized_distances(question, retrieved_docs)
 
-        # 2. Get Embeddings (We re-embed here to ensure we have the vectors for math)
-        # Note: In production with millions of docs, you'd fetch vectors from DB. 
+        # get embeddings (We re-embed here to ensure we have the vectors for math)
+        # In production with millions of docs, we would fetch vectors from DB. 
         # For <20 docs, re-embedding on the fly is fast.
         initial_query_embedding = self.embedding_model.embed_query(question)
         follow_up_embeddings = [self.embedding_model.embed_query(fq) for fq in follow_up_questions]
@@ -79,7 +79,7 @@ class CustomReranker:
             # C. Distance from TF-IDF
             dist = distances[idx]
 
-            # D. Final Formula from Notebook
+            # D. Final Formula 
             final_score = (alpha * init_score) + (beta * fu_score) - (gamma * dist)
 
             scored_results.append({
