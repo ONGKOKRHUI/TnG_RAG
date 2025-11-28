@@ -34,7 +34,7 @@ Traditional RAG systems typically perform a single vector search:
 2.  **Initial Retrieval:** It retrieves a broader set of candidate documents (Top 15) using standard vector search.
 3.  **Advanced Reranking:** It re-scores these 15 documents using a custom formula:
 
-    $(Score = (\alpha \times \text{Initial Similarity}) + (\beta \times \text{Follow-up Similarity}) - (\gamma \times \text{TF-IDF Distance}))$
+    $Score = (\alpha \times \text{Initial Similarity}) + (\beta \times \text{Follow-up Similarity}) - (\gamma \times \text{TF-IDF Distance})$
 
     *   **Initial Similarity ($\alpha$):** How well the doc matches your direct question.
     *   **Follow-up Similarity ($\beta$):** How well the doc matches the generated follow-up questions (capturing hidden context).
